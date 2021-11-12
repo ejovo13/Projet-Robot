@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "ejovo_rand.h"
 #include <string.h>
 #include <stdint.h>
 // #include "ejovo_comp.h"

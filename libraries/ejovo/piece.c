@@ -105,6 +105,22 @@ bool Piece_set(Piece *__p, size_t __i, size_t __j, bool __val) {
 
 }
 
+bool Piece_get(const Piece *__p, size_t __i, size_t __j) {
+
+    size_t mat_j = (size_t) __j / 8; // this just works
+    size_t offset = __j % 8; // number of bits that are offset
+
+    printf("Accessing matrix column %d\n", mat_j);
+    printf("Accesing offset %d\n", offset);
+
+
+    uint8_t *u = Matrix_access(__p, __i, mat_j);
+    printf("Value of u: %lu\n", *u);
+
+    return nth_bit(*u, offset);
+
+}
+
 
 
 

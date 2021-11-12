@@ -1,12 +1,9 @@
 extern "C" {
 
-  #include <ejovo_rand.h>
   #include <ejovo_matrix.h>
   #include <piece.h>
-
+  
 }
-
-// un changement
 
 /*
   Blink
@@ -32,7 +29,7 @@ extern "C" {
   https://www.arduino.cc/en/Tutorial/BuiltInExamples/Blink
 */
 
-const int trig = A5;
+const int trig = A5; 
 const int echo = A4;
 
 // the setup function runs once when you press reset or power the board
@@ -52,12 +49,16 @@ void setup() {
   Serial.println(Piece_set(p, 1, 1, true));
 
 //  Piece_free(p);
+  Piece_set(p, 4, 4, true);
+
+  Serial.print("Bit 5,5 = ");
+  Serial.println(Piece_get(p, 4, 4));
 
   Serial.println("Memory of the piece freed");
-
+ 
 }
-
-
+  
+  
 void loop() {
   // establish variables for duration of the ping, and the distance result
   // in inches and centimeters:

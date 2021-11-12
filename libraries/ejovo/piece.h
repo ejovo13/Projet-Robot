@@ -45,6 +45,8 @@ extern void Piece_free(Piece *__p);
 
 extern bool Piece_set(Piece *__p, size_t __i, size_t __j, bool __val);
 
+extern bool Piece_get(const Piece *__p, size_t __i, size_t __j);
+
 
 
 
