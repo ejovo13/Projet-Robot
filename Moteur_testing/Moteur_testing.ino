@@ -1,21 +1,21 @@
-// extern "C" {
-//     #include "piece.h"
-// }
+extern "C" {
+    #include "piece.h"
+}
 
-// #include <servo.h>
-// #include <Ping.h>
+#include <servo.h>
+#include <Ping.h>
 
-// #define MAX_Distance 200
-// #define MIN_Distance 20
-// #define carSpeed 100
+#define MAX_Distance 200
+#define MIN_Distance 20
+#define carSpeed 100
+int angle = 0;
 
-// // Unltrasonic sensor initialization
-// int Echo = A4; //Ping that send the wave
-// int Trig = A5; //Ping that receive the wave
-// NewPing sonar(Trig,Echo, MAX_Distance); // NewPing setup of pins and maximum distance
+// Unltrasonic sensor initialization
+int Echo = A4; //Ping that send the wave
+int Trig = A5; //Ping that receive the wave
+NewPing sonar(Trig,Echo, MAX_Distance); // NewPing setup of pins and maximum distance
 
 //Motor initialization
-// Servo myservo;
 #define LM 5 //Activation of Left side motors
 #define LFW 7 //Left front wheel
 #define LBW 8 //Left back wheel
@@ -24,6 +24,10 @@
 #define RBW 9 //Right front wheel
 #define RFW 11 //Right back wheel
 
+//Ultrasonic initialization
+Servo myservo;
+
+//Functions initialization
 void forward();
 void backward();
 void left();
@@ -33,6 +37,9 @@ void stop();
 
 void setup() {
     Serial.begin(9600); //set up the terminal
+
+    myservo.attach(3); //pin linked to the sensor motor
+    myservo.write(90); //set sensor motor to 90 degres
 
     pinMode(LFW, OUTPUT); //set Left wheels pin mode to output
     pinMode(LBW, OUTPUT);
@@ -46,8 +53,13 @@ void setup() {
 }
 
 void loop() {
-    forward();
-    delay(1000);
+    //do a 360
+    if (angle < 360)
+    {
+        Serial.println(getDistance());
+        left();
+        i++;
+    }
 }
 
 //Go forward
@@ -105,10 +117,11 @@ void stop() {
     Serial.println("Stop");
 }
 
-// int getDistance(){
-//     int d = sonar.ping_cm();
-//     if(d==0)
-//     { return MAX_Distance; } //When out of range always equal to 0 bcs when smth is close, never returns 0
-//     else
-//     { return d; }
-// }
+//Get distance
+int getDistance(){
+    int d = sonar.ping_cm();
+    if(d==0)
+    { return MAX_Distance; } //When out of range always equal to 0 bcs when smth is close, never returns 0
+    else
+    { return d; }
+}
