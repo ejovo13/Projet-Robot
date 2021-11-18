@@ -65,6 +65,7 @@ void right();
 void stop();
 void turn_right(float);
 void rightSpeed(int);
+void Serial_print_piece(const Piece *p); // print piece to the serial
 
 //Go forward
 void forward() {
@@ -81,8 +82,12 @@ void forward() {
     Serial.println("Forward");
 }
 
+Piece *p = NULL;
 
 void setup() {
+
+    p = Piece_new(80);
+
     Serial.begin(9600); //set up the terminal
 
     Serial.println("What the fuck man");
@@ -170,8 +175,9 @@ void loop() {
 //      stop_n_go(1000);
 
 
-
+     delay(3000);
       Serial.println("Looping");
+      Serial_print_piece(p);
 }
 
 
@@ -247,9 +253,6 @@ const float angVelRight250 = 260.93259;
 // turn right at 250 carSpeed!!
 void turn_right(float __degrees) {
 
-  g_car_angle -= __degrees;
-  float speedScalar = 1.12;
-
   // pour combien de temps?
   float turnTime = __degrees / angVelRight250; // give us the time it takes to rotate __degrees in seconds
   float waitTime = 0;
@@ -257,7 +260,7 @@ void turn_right(float __degrees) {
   float surgeTime = 6.6f / angVelRight250; // overcome friction
 
   if (__degrees <= 90) {
-     waitTime = turnTime * speedScalar;
+     waitTime = turnTime * 1.05;
   } else {
     waitTime = 0;
   }
@@ -280,3 +283,18 @@ void turn_right(float __degrees) {
 //    else
 //    { return d; }
 //}
+
+void Serial_print_piece(const Piece *__p) {
+
+    for (size_t i = 0; i < __p->nrows; i++) {
+
+        for (size_t j = 0; j < __p->ncols; j++) {
+
+            // Serial.print(Piece_get(__p, i, j));
+            Serial.print(Matrix_at(__p, i, j));
+            Serial.print(" ");
+        }
+
+        Serial.println("");
+    }
+}
