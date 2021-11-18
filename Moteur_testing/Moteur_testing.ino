@@ -39,6 +39,8 @@ void go_square_right();
 void Serial_print_piece(const Piece *p); // print piece to the serial
 void setpins();
 int getDistance();
+void startFollowWalls();
+void followRightWall();
 
 // declare global variables?
 Piece *g_piece = NULL;
@@ -63,7 +65,15 @@ void setup() {
 
     delay(1000); // chill out before turning
 
-    scan360(5);
+    // scan360(4);
+
+    startFollowWalls();
+    followRightWall();
+    followRightWall();
+    followRightWall();
+    followRightWall();
+
+    // scan360(4);
 
 }
 
@@ -220,13 +230,14 @@ const float angVelLeft250 = 275.124188;
 void turn_right(float __degrees) {
 
     g_car_angle -= __degrees;
+    // float speedScalar = 1.32;
     float speedScalar = 1.12;
 
     // pour combien de temps?
     float turnTime = __degrees / angVelRight250; // give us the time it takes to rotate __degrees in seconds
     float waitTime = 0;
 
-    float surgeTime = 5.23f / angVelRight250; // overcome friction
+    float surgeTime = 6.9f / angVelRight250; // overcome friction
 
     if (__degrees <= 90) {
         waitTime = turnTime * speedScalar;
@@ -299,7 +310,7 @@ void car_turn_left(void) {
 
     }
 
-    turn_left(90); // this function also adjusts the variable g_car_angle
+    turn_left(80); // this function also adjusts the variable g_car_angle
 }
 
 // Car turn right by 90 degrees and update direction
@@ -328,7 +339,7 @@ void car_turn_right(void) {
 
     }
 
-    turn_right(90);
+    turn_right(80);
 }
 
 void go_square_left() {
@@ -438,7 +449,7 @@ int getDistance() {
 }
 
 /**
- * @brief Tourner 360 degrees en 180 __n itérations
+ * @brief Tourner 360 degrees en __n itérations
  *
  */
 void scan360(size_t __n) {
@@ -500,4 +511,147 @@ void Serial_print_piece(const Piece *__p) {
 
         Serial.print("\n");
     }
+}
+
+const int g_targetDistanceAdjacent = 25;
+
+// Implement function that will follow the walls
+// - start heading forward until we are ~10 cm from the wall
+// - then turn 90 degrees right/left
+// - turn sensor perpindicular to the wall
+// - ride a long wall
+void startFollowWalls() {
+
+    // start heading north
+    int distance_cm = 0;
+    int n_cases = 0;
+
+    g_myservo.write(90);
+
+    // FIRST STEP
+    // get distance
+
+    while (true) {
+
+        distance_cm = getDistance();
+        delay(200);
+
+        if (distance_cm == -1) { // wall is too far away
+
+            car_advance(10);
+            delay(100);
+            continue;
+
+        } else if (distance_cm < g_targetDistanceAdjacent + 5) {
+
+            // we are close enough to the wall
+            stop();
+            delay(200);
+            car_turn_right();
+            g_myservo.write(180);
+
+            break;
+
+        } else {
+
+            // convert distance to cases
+            n_cases = distance_cm / 5;
+            car_advance(1);
+            stop();
+
+        }
+    }
+}
+
+void followRightWall() {
+
+    int distanceAdjacent = 0;
+    int prevDistanceAdjacent = 0;
+    int distanceFace = 0;
+
+    // int minDistanceFace = ;
+
+    while (true) {
+
+        prevDistanceAdjacent = distanceAdjacent;
+
+        g_myservo.write(180);
+        delay(200);
+
+        distanceAdjacent = getDistance();
+        car_advance(3);
+
+        if ( distanceAdjacent < prevDistanceAdjacent ) { // la on approche le mur
+
+            if ( distanceAdjacent < g_targetDistanceAdjacent - 15) {
+                turn_right(10);
+            } else if ( distanceAdjacent < g_targetDistanceAdjacent - 10) {
+                turn_right(5);
+            } else if ( distanceAdjacent < g_targetDistanceAdjacent - 5) {
+                turn_right(2);
+            } else {
+                // continue to approach the wall
+            }
+
+        } else if ( distanceAdjacent > prevDistanceAdjacent ) { //la on s'éloigne du mur
+
+            if ( distanceAdjacent > g_targetDistanceAdjacent + 15 ) {
+                turn_left(10);
+            } else if ( distanceAdjacent > g_targetDistanceAdjacent + 10 ) { // si l'écart avec le mur est trop grand, corriger plus
+                turn_left(5);
+            } else if ( distanceAdjacent > g_targetDistanceAdjacent + 5) {
+                turn_left(2);
+            } else {
+                // continue to approach the wall
+            }
+        }
+
+
+        // process adjacent distance
+        // if ( distanceAdjacent > g_targetDistanceAdjacent + 10 ) {
+
+        //     turn_left(10);
+
+        // }
+
+        // if ( distanceAdjacent > g_targetDistanceAdjacent + 2 ) {
+
+        //     turn_left(5);
+
+        // }
+        // else if ( distanceAdjacent > g_targetDistanceAdjacent + 2 ) {
+
+        //     turn_left(2);
+
+        // } else if ( distanceAdjacent < g_targetDistanceAdjacent - 10 ) {
+
+        //     turn_right(10);
+
+        // // }
+        // else if ( distanceAdjacent < g_targetDistanceAdjacent - 2 ) {
+
+        //     turn_right(5);
+
+
+        // }
+        // else if ( distanceAdjacent < g_targetDistanceAdjacent - 2 ) {
+        //
+        //     turn_right(2);
+        // }
+
+        g_myservo.write(90); // look at the wall in front of us
+        delay(200);
+
+        distanceFace = getDistance();
+
+        // process forward distance
+        if ( distanceFace < g_targetDistanceAdjacent + 5) {
+            stop();
+            car_turn_right();
+            distanceAdjacent = distanceFace;
+            break;
+        }
+
+    }
+
 }
