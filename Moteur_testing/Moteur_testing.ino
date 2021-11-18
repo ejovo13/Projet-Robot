@@ -1,34 +1,30 @@
-//
-// extern "C" {
-    //  #include "ejovo_matrix.h"
-    //   #include "piece.h"
-// }
+extern "C" {
+    #include "ejovo_matrix.h"
+    #include "piece.h"
+}
 
 #include <Servo.h>
 #include <NewPing.h>
-//
+
 #define MAX_DISTANCE 350
 #define MIN_Distance 20
-//
-//// Unltrasonic sensor initialization
+
+// Unltrasonic sensor initialization
 int Echo = A4; //Ping that send the wave
 int Trig = A5; //Ping that receive the wave
 NewPing sonar(Trig,Echo, MAX_DISTANCE); // NewPing setup of pins and maximum distance
-//
-//Motor initialization
-#define LM 5 // Activation of Left side motors
-#define LFW 7 // Left forwards
-#define LBW 8 // Left backwards
 
-#define RM 6 // Activaton of Right side motors
-#define RBW 9 // Right backwards
-#define RFW 11 // ight forwards
+//Motor initialization
+#define L_MOTOR 5 // Activation of Left side motors
+#define L_FORWARD 7 // Left forwards
+#define L_BACKWARD 8 // Left backwards
+
+#define R_MOTOR 6 // Activaton of Right side motors
+#define R_BACKWARD 9 // Right backwards
+#define R_FORWARD 11 // Right forwards
 int carSpeed = 250;
 
-// const int NORTH = 1;
-// const int EAST = 2;
-// const int SOUTH = 3;
-// const int WEST = 4;
+// these declarations should probably be in a header file
 
 //Functions initialization
 void forward();
@@ -40,94 +36,129 @@ void turn_right(float);
 void rightSpeed(int);
 void go_square_left();
 void go_square_right();
+void Serial_print_piece(const Piece *p); // print piece to the serial
+void setpins();
+int getDistance();
+
+// declare global variables?
+Piece *g_piece = NULL;
+Servo g_myservo;
+
+// Global car variables
+
 
 
 void setup() {
+
     Serial.begin(9600); //set up the terminal
 
-    Serial.println("What the fuck man");
-    Servo myservo;
+    g_myservo.attach(3); //pin linked to the sensor motor
+    g_myservo.write(90); //set sensor motor to point straight forward
 
-    Serial.println("Hello my code is running");
-//
-    myservo.attach(3); //pin linked to the sensor motor
-    myservo.write(90); //set sensor motor to 90 degres
+    g_piece = Piece_new(8);
+    for (size_t i = 0; i < 8; i++) { Piece_set(g_piece, i, i, 1); } // Set the diagonals to true
 
-    pinMode(10, INPUT);
-    pinMode(4, INPUT);
-    pinMode(2, INPUT);
-//
-    pinMode(RFW, OUTPUT); //set Left wheels pin mode to output
-    pinMode(RBW, OUTPUT);
-    pinMode(LFW,  OUTPUT);
-    pinMode(LBW, OUTPUT);
-
-    pinMode(LM, OUTPUT);
-    pinMode(RM, OUTPUT);
-
-    digitalWrite(RM, HIGH);
-    digitalWrite(LM, HIGH);
+    // set all motor pins to output mode
+    setpins();
 
     delay(1000); // chill out before turning
 
-    // for (int i = 0; i < 8; i++) {
-    //     car_advance(1);
-    //     delay(1000);
-    // }
+    scan360(180);
 
-    // car_advance(8);
-    // delay(1000);
-
-    // go_square_right();
-    // delay(1000);
-    // go_square_left();
-    scan360();
-
-
-// turn 5 degrees at a time, 18 times
-//    for (int i = 0; i < 18; i ++) {
-//      turn_right(5);
-//      delay(500);
-//    }
-
-
-    // for (int i = 0; i < 18; i++) {
-    //   turn_left(5);
-    //   delay(500);
-    // } // turn 90 degrees
-
-    // delay(2500);
-
-    // for (int i = 0; i < 18; i++) {
-    //   turn_left(10);
-    //   delay(500);
-    // }
 }
 
 void loop() {
+
       Serial.println("Looping");
+      delay(5000);
+      Serial_print_piece(g_piece);
+
 }
+
+
+/**========================================================================
+ *!                    Utility functions used in setup
+ *========================================================================**/
+void setpins() {
+
+    // bro wtf is this shit??
+    pinMode(10, INPUT);
+    pinMode(4, INPUT);
+    pinMode(2, INPUT);
+
+    // Set motor pins mode to receive power
+    pinMode(L_MOTOR, OUTPUT);
+    pinMode(R_MOTOR, OUTPUT);
+
+    pinMode(R_FORWARD, OUTPUT);
+    pinMode(R_BACKWARD, OUTPUT);
+    pinMode(L_FORWARD,  OUTPUT);
+    pinMode(L_BACKWARD, OUTPUT);
+
+    digitalWrite(R_MOTOR, HIGH);
+    digitalWrite(L_MOTOR, HIGH);
+
+    digitalWrite(R_MOTOR, LOW);
+    digitalWrite(L_MOTOR, LOW);
+
+    Serial.println("Pins succesfully set");
+
+}
+
+/**========================================================================
+ *!                           Movement Functions (No speed)
+ *========================================================================**/
 //Go forward
 void forward() {
-    analogWrite(LM, carSpeed); // Turn on left side motor
-    analogWrite(RM, 0.948 * carSpeed); // compensate for physical
-    digitalWrite(LFW, HIGH); // Left side move forward
-    digitalWrite(LBW, LOW);  // left side move backwards
-    digitalWrite(RFW, HIGH);  // right side move forward
-    digitalWrite(RBW, LOW);   // right side move backwards
+    analogWrite(L_MOTOR, carSpeed); // Turn on left side motor
+    analogWrite(R_MOTOR, 0.948 * carSpeed); // compensate for physical
+    digitalWrite(L_FORWARD, HIGH); // Left side move forward
+    digitalWrite(L_BACKWARD, LOW);  // left side move backwards
+    digitalWrite(R_FORWARD, HIGH);  // right side move forward
+    digitalWrite(R_BACKWARD, LOW);   // right side move backwards
     Serial.println("Forward");
 }
 
 //Go backward
 void backward() {
-    analogWrite(LM, carSpeed); //Turn on left side motor
-    digitalWrite(LFW, LOW); //Backward mode on left side wheels
-    digitalWrite(LBW, HIGH);
+    analogWrite(L_MOTOR, carSpeed); //Turn on left side motor
+    digitalWrite(L_FORWARD, LOW); //Backward mode on left side wheels
+    digitalWrite(L_BACKWARD, HIGH);
 
-    analogWrite(RM, carSpeed); //Turn on right side motor
-    digitalWrite(RFW, LOW); //Backward mode on right side wheels
-    digitalWrite(RBW, HIGH);
+    analogWrite(R_MOTOR, carSpeed); //Turn on right side motor
+    digitalWrite(R_FORWARD, LOW); //Backward mode on right side wheels
+    digitalWrite(R_BACKWARD, HIGH);
     Serial.println("Backward");
+}
+
+//Go left
+void left() {
+    analogWrite(L_MOTOR, carSpeed); //Turn on left side motor
+    digitalWrite(L_FORWARD, LOW); //Backward mode on left side wheels
+    digitalWrite(L_BACKWARD, HIGH);
+
+    analogWrite(R_MOTOR, carSpeed); //Turn on right side motor
+    digitalWrite(R_FORWARD, HIGH); //Forward mode on right side wheels
+    digitalWrite(R_BACKWARD, LOW);
+    Serial.println("Left");
+}
+
+//Go right
+void right() {
+    analogWrite(L_MOTOR, carSpeed); //Turn on left side motor
+    digitalWrite(L_FORWARD, HIGH); //Forward mode on left side wheels
+    digitalWrite(L_BACKWARD, LOW);
+
+    analogWrite(R_MOTOR, carSpeed); //Turn on right side motor
+    digitalWrite(R_FORWARD, LOW); //Backwrd mode on right side wheels
+    digitalWrite(R_BACKWARD, HIGH);
+    Serial.println("Right");
+}
+
+//Setup right rotation speed
+void rightSpeed(int speed) {
+  carSpeed = speed;
+  right();
 }
 
 //Setup left rotation speed
@@ -136,40 +167,10 @@ void leftSpeed(int speed) {
   left();
 }
 
-//Go left
-void left() {
-    analogWrite(LM, carSpeed); //Turn on left side motor
-    digitalWrite(LFW, LOW); //Backward mode on left side wheels
-    digitalWrite(LBW, HIGH);
-
-    analogWrite(RM, carSpeed); //Turn on right side motor
-    digitalWrite(RFW, HIGH); //Forward mode on right side wheels
-    digitalWrite(RBW, LOW);
-    Serial.println("Left");
-}
-
-//Setup right rotation speed 
-void rightSpeed(int speed) {
-  carSpeed = speed;
-  right();
-}
-
-//Go right
-void right() {
-    analogWrite(LM, carSpeed); //Turn on left side motor
-    digitalWrite(LFW, HIGH); //Forward mode on left side wheels
-    digitalWrite(LBW, LOW);
-
-    analogWrite(RM, carSpeed); //Turn on right side motor
-    digitalWrite(RFW, LOW); //Backwrd mode on right side wheels
-    digitalWrite(RBW, HIGH);
-    Serial.println("Right");
-}
-
 //Stop
 void stop() {
-    digitalWrite(LM, LOW); //Turn off left side motors
-    digitalWrite(RM, LOW); //Turn off right side motors
+    digitalWrite(L_MOTOR, LOW); //Turn off left side motors
+    digitalWrite(R_MOTOR, LOW); //Turn off right side motors
     Serial.println("Stop");
 }
 
@@ -183,6 +184,10 @@ void stop_n_go(int duration) {
   stop();
   delay(duration);
 }
+
+/**========================================================================
+ *!                           Car oriented functions
+ *========================================================================**/
 
 //*********** CAR COORDONEES ****************\\
 
@@ -214,57 +219,57 @@ const float angVelLeft250 = 275.124188;
 // turn right at 250 carSpeed!!
 void turn_right(float __degrees) {
 
-  g_car_angle -= __degrees;
-  float speedScalar = 1.12;
+    g_car_angle -= __degrees;
+    float speedScalar = 1.12;
 
-  // pour combien de temps?
-  float turnTime = __degrees / angVelRight250; // give us the time it takes to rotate __degrees in seconds
-  float waitTime = 0;
+    // pour combien de temps?
+    float turnTime = __degrees / angVelRight250; // give us the time it takes to rotate __degrees in seconds
+    float waitTime = 0;
 
-  float surgeTime = 5.23f / angVelRight250; // overcome friction
+    float surgeTime = 5.23f / angVelRight250; // overcome friction
 
-  if (__degrees <= 90) {
-     waitTime = turnTime * speedScalar;
-  } else {
-    waitTime = 0;
-  }
+    if (__degrees <= 90) {
+        waitTime = turnTime * speedScalar;
+    } else {
+        waitTime = 0;
+    }
 
-  // surge
-  rightSpeed(250); //Do the first 5.23 degrees with surgetime to overcome friction
-  delay(surgeTime * 1000);
+    // surge
+    rightSpeed(250); //Do the first 5.23 degrees with surgetime to overcome friction
+    delay(surgeTime * 1000);
 
-  rightSpeed(250); 
-  delay( waitTime * 1000);
-  stop()
+    rightSpeed(250);
+    delay( waitTime * 1000);
+    stop();
 
 }
 
 // turn right at 250 carSpeed!!
 void turn_left(float __degrees) {
 
-  g_car_direction += __degrees;
+    g_car_direction += __degrees;
 
-  // pour combien de temps?
-  float speedScalar = 1.12;
+    // pour combien de temps?
+    float speedScalar = 1.12;
 
-  float turnTime = __degrees / angVelLeft250; // give us the time it takes to rotate __degrees in seconds
-  float waitTime = 0;
+    float turnTime = __degrees / angVelLeft250; // give us the time it takes to rotate __degrees in seconds
+    float waitTime = 0;
 
-  float surgeTime = 6.6f / angVelLeft250; // overcome friction
+    float surgeTime = 6.6f / angVelLeft250; // overcome friction
 
-  if (__degrees <= 90) {
-     waitTime = turnTime * speedScalar; 
-  } else {
-    waitTime = 0;
-  }
+    if (__degrees <= 90) {
+        waitTime = turnTime * speedScalar;
+    } else {
+        waitTime = 0;
+    }
 
-  // surge
-  leftSpeed(250); //Do the first 6.6 degrees with surge time to over come friction
-  delay(surgeTime * 1000);
+    // surge
+    leftSpeed(250); //Do the first 6.6 degrees with surge time to over come friction
+    delay(surgeTime * 1000);
 
-  leftSpeed(250);
-  delay( waitTime * 1000);
-  stop();
+    leftSpeed(250);
+    delay( waitTime * 1000);
+    stop();
 
 }
 
@@ -432,12 +437,21 @@ int getDistance(){
    { return d; }
 }
 
+/**
+ * @brief Tourner 360 degrees en 180 __n itérations
+ *
+ */
+void scan360(size_t __n) {
 
-void scan360() {
+    int distance_cm = 0;
+    const int delayTime = 200;
+    const int stepSize = 360 / __n;
 
-    for (int i = 0; i < 180; i++) {
-        turn_right(2);
-        int distance_cm = getDistance();
+    for (size_t i = 0; i < __n; i++) {
+
+        turn_right(stepSize);
+        distance_cm = getDistance();
+        delay(delayTime);
 
         if (distance_cm == -1) { // out of range
             //do nothing
@@ -462,10 +476,31 @@ void scan360() {
 
             // Piece_set(g_piece, i, j, true);
 
-
         }
 
-        delay(75);
     }
 
 }
+
+/**
+ * @brief Afficher a l'écran un pièce dans sa représentation matricielle des uint8_t
+ *
+ * @param __p Pièce a afficher
+ */
+void Serial_print_piece(const Piece *__p) {
+
+    for (size_t i = 0; i < __p->nrows; i++) {
+
+        for (size_t j = 0; j < __p->ncols; j++) {
+
+            // Serial.print(Piece_get(__p, i, j));
+            Serial.print(Matrix_at(__p, i, j));
+            Serial.print(" ");
+        }
+
+        Serial.println("");
+    }
+}
+
+
+
