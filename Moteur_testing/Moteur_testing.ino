@@ -55,7 +55,7 @@ void setup() {
     g_myservo.attach(3); //pin linked to the sensor motor
     g_myservo.write(90); //set sensor motor to point straight forward
 
-    g_piece = Piece_new(8);
+    g_piece = Piece_new(80);
     for (size_t i = 0; i < 8; i++) { Piece_set(g_piece, i, i, 1); } // Set the diagonals to true
 
     // set all motor pins to output mode
@@ -63,7 +63,7 @@ void setup() {
 
     delay(1000); // chill out before turning
 
-    scan360(180);
+    scan360(5);
 
 }
 
@@ -71,7 +71,7 @@ void loop() {
 
       Serial.println("Looping");
       delay(5000);
-      Serial_print_piece(g_piece);
+      Serial_print_piece(g_piece); // need to figure out how to print an 80 x 80
 
 }
 
@@ -491,16 +491,13 @@ void Serial_print_piece(const Piece *__p) {
 
     for (size_t i = 0; i < __p->nrows; i++) {
 
-        for (size_t j = 0; j < __p->ncols; j++) {
+        for (size_t j = 0; j < __p->ncols * 8; j++) {
 
-            // Serial.print(Piece_get(__p, i, j));
-            Serial.print(Matrix_at(__p, i, j));
+             Serial.print(Piece_get(__p, i, j));
+//            Serial.print(Matrix_at(__p, i, j));
             Serial.print(" ");
         }
 
-        Serial.println("");
+        Serial.print("\n");
     }
 }
-
-
-
