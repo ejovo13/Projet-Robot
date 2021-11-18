@@ -388,7 +388,7 @@ void go_square_right() {
 // pour faire une case, on veux 5 / moyenne = 0.08075 s
 // ===> delay(81)
 
-const float carSpeedForward250 = 61.919504;
+const float carSpeedForward250 = 61.919504; // car speed in cm/s
 const int cmPerCase = 5;
 
 // Advance __ncases forward
@@ -428,7 +428,7 @@ void car_advance(int __ncases) {
 }
 
 // Get distance
-int getDistance(){
+int getDistance() {
 
    int d = sonar.ping_cm();
    if(d == 0 || d > MAX_DISTANCE)
