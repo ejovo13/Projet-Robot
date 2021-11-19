@@ -47,7 +47,12 @@ Piece *g_piece = NULL;
 Servo g_myservo;
 
 // Global car variables
-
+enum direction { NORTH, EAST, SOUTH, WEST };
+float g_car_i = 39;
+float g_car_j = 39;
+int g_car_direction = NORTH;
+int g_car_speed = 0;
+float g_car_angle = 0;
 
 
 void setup() {
@@ -58,7 +63,7 @@ void setup() {
     g_myservo.write(90); //set sensor motor to point straight forward
 
     g_piece = Piece_new(80);
-    for (size_t i = 0; i < 8; i++) { Piece_set(g_piece, i, i, 1); } // Set the diagonals to true
+    // for (size_t i = 0; i < 8; i++) { Piece_set(g_piece, i, i, 1); } // Set the diagonals to true
 
     // set all motor pins to output mode
     setpins();
@@ -69,9 +74,9 @@ void setup() {
 
     startFollowWalls();
     followRightWall();
-    followRightWall();
-    followRightWall();
-    followRightWall();
+    // followRightWall();
+    // followRightWall();
+    // followRightWall();
 
     // scan360(4);
 
@@ -79,9 +84,11 @@ void setup() {
 
 void loop() {
 
-      Serial.println("Looping");
-      delay(5000);
-      Serial_print_piece(g_piece); // need to figure out how to print an 80 x 80
+    Serial.print("Current direction: ");
+    Serial.println(g_car_direction);
+    Serial.println("Looping");
+    delay(5000);
+    Serial_print_piece(g_piece); // need to figure out how to print an 80 x 80
 
 }
 
@@ -201,12 +208,6 @@ void stop_n_go(int duration) {
 
 //*********** CAR COORDONEES ****************\\
 
-enum direction { NORTH, EAST, SOUTH, WEST };
-float g_car_i = 19;
-float g_car_j = 19;
-int g_car_direction = NORTH;
-int g_car_speed = 0;
-float g_car_angle = 0;
 
 //*********** SPEED ANGLE TEST  **************\\
 //
@@ -232,6 +233,7 @@ void turn_right(float __degrees) {
     g_car_angle -= __degrees;
     // float speedScalar = 1.32;
     float speedScalar = 1.12;
+    // float speedScalar = 1.22;
 
     // pour combien de temps?
     float turnTime = __degrees / angVelRight250; // give us the time it takes to rotate __degrees in seconds
@@ -339,7 +341,7 @@ void car_turn_right(void) {
 
     }
 
-    turn_right(80);
+    turn_right(85);
 }
 
 void go_square_left() {
@@ -502,10 +504,10 @@ void Serial_print_piece(const Piece *__p) {
 
     for (size_t i = 0; i < __p->nrows; i++) {
 
-        for (size_t j = 0; j < __p->ncols * 8; j++) {
+        for (size_t j = 0; j < __p->ncols; j++) {
 
-             Serial.print(Piece_get(__p, i, j));
-//            Serial.print(Matrix_at(__p, i, j));
+            //  Serial.print(Piece_get(__p, i, j));
+           Serial.print(Matrix_at(__p, i, j));
             Serial.print(" ");
         }
 
@@ -525,6 +527,10 @@ void startFollowWalls() {
     // start heading north
     int distance_cm = 0;
     int n_cases = 0;
+
+    // start with the car in middle of the matrix
+    g_car_i = 39;
+    g_car_j = 39;
 
     g_myservo.write(90);
 
@@ -549,7 +555,6 @@ void startFollowWalls() {
             delay(200);
             car_turn_right();
             g_myservo.write(180);
-
             break;
 
         } else {
@@ -576,22 +581,37 @@ void followRightWall() {
         prevDistanceAdjacent = distanceAdjacent;
 
         g_myservo.write(180);
-        delay(200);
-
+        delay(400);
         distanceAdjacent = getDistance();
         car_advance(3);
+
+        addAdjacentWall(distanceAdjacent);
+
+        delay(100);
 
         if ( distanceAdjacent < prevDistanceAdjacent ) { // la on approche le mur
 
             if ( distanceAdjacent < g_targetDistanceAdjacent - 15) {
-                turn_right(10);
+                turn_right(15);
             } else if ( distanceAdjacent < g_targetDistanceAdjacent - 10) {
-                turn_right(5);
+                turn_right(10);
             } else if ( distanceAdjacent < g_targetDistanceAdjacent - 5) {
+                turn_right(5);
+            } else if ( distanceAdjacent < g_targetDistanceAdjacent ) {
                 turn_right(2);
             } else {
                 // continue to approach the wall
             }
+
+            // if ( distanceAdjacent < g_targetDistanceAdjacent - 15) {
+            //     turn_right(10);
+            // } else if ( distanceAdjacent < g_targetDistanceAdjacent - 10) {
+            //     turn_right(5);
+            // } else if ( distanceAdjacent < g_targetDistanceAdjacent - 5) {
+            //     turn_right(2);
+            // } else {
+            //     // continue to approach the wall
+            // }
 
         } else if ( distanceAdjacent > prevDistanceAdjacent ) { //la on s'éloigne du mur
 
@@ -606,39 +626,6 @@ void followRightWall() {
             }
         }
 
-
-        // process adjacent distance
-        // if ( distanceAdjacent > g_targetDistanceAdjacent + 10 ) {
-
-        //     turn_left(10);
-
-        // }
-
-        // if ( distanceAdjacent > g_targetDistanceAdjacent + 2 ) {
-
-        //     turn_left(5);
-
-        // }
-        // else if ( distanceAdjacent > g_targetDistanceAdjacent + 2 ) {
-
-        //     turn_left(2);
-
-        // } else if ( distanceAdjacent < g_targetDistanceAdjacent - 10 ) {
-
-        //     turn_right(10);
-
-        // // }
-        // else if ( distanceAdjacent < g_targetDistanceAdjacent - 2 ) {
-
-        //     turn_right(5);
-
-
-        // }
-        // else if ( distanceAdjacent < g_targetDistanceAdjacent - 2 ) {
-        //
-        //     turn_right(2);
-        // }
-
         g_myservo.write(90); // look at the wall in front of us
         delay(200);
 
@@ -651,7 +638,50 @@ void followRightWall() {
             distanceAdjacent = distanceFace;
             break;
         }
+    }
+}
+
+// WALL IS ON THE LEFT SIDE OF US!!!!!
+void addAdjacentWall(int distanceAdjacent) {
+
+    if (g_car_direction == EAST) { //si la voiture longe le mur d'en haut
+
+        Piece_set( g_piece, g_car_i - (g_targetDistanceAdjacent / 5), g_car_j, true);
+        Piece_set( g_piece, g_car_i - (g_targetDistanceAdjacent / 5), g_car_j +1, true);
+        Piece_set( g_piece, g_car_i - (g_targetDistanceAdjacent / 5), g_car_j +2, true);
+
+        // Piece_set( g_piece, g_car_i - (distanceAdjacent / 5), g_car_j, true);
+        // Piece_set( g_piece, g_car_i - (distanceAdjacent / 5), g_car_j +1, true);
+        // Piece_set( g_piece, g_car_i - (distanceAdjacent / 5), g_car_j +2, true);
+
+        // g_car_i =
+        // g_car_j += 3;
+
+    } else if (g_car_direction == SOUTH) { //si la voiture longe le mur de gauche
+        Piece_set( g_piece, g_car_i, g_car_j + (g_targetDistanceAdjacent / 5), true);
+        Piece_set( g_piece, g_car_i+1, g_car_j + (g_targetDistanceAdjacent / 5), true);
+        Piece_set( g_piece, g_car_i+2, g_car_j + (g_targetDistanceAdjacent / 5), true);
+
+        // g_car_i -= 3;
+        // g_car_j = 80 - (distanceAdjacent / 5);
+
+    } else if(g_car_direction == WEST) {  //si la voiture longe le mur du bas
+
+        Piece_set( g_piece, g_car_i + (g_targetDistanceAdjacent / 5), g_car_j, true);
+        Piece_set( g_piece, g_car_i + (g_targetDistanceAdjacent / 5), g_car_j - 1, true);
+        Piece_set( g_piece, g_car_i + (g_targetDistanceAdjacent / 5), g_car_j - 2, true);
+
+        // g_car_i = 80 - (distanceAdjacent / 5);
+        // g_car_j += 3;
+
+    } else if (g_car_direction == NORTH) { //si la voiture longe le mur de gauche
+
+        Piece_set( g_piece, g_car_i, g_car_j - (g_targetDistanceAdjacent / 5), true); //rempli à la coordonné i et j - distance avec le mur
+        Piece_set( g_piece, g_car_i-1, g_car_j - (g_targetDistanceAdjacent / 5), true); //rempli à la coordonné i - 1 et j - distance avec le mur
+        Piece_set( g_piece, g_car_i-2, g_car_j - (g_targetDistanceAdjacent / 5), true);
+
+        // g_car_i = distanceAdjacent / 5;
+        // g_car_j -= 3;
 
     }
-
 }
