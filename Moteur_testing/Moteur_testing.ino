@@ -65,6 +65,17 @@ void setup() {
     g_piece = Piece_new(80);
     // for (size_t i = 0; i < 8; i++) { Piece_set(g_piece, i, i, 1); } // Set the diagonals to true
 
+    // for (size_t j = 3; j < 50; j++) {
+    //     Piece_set(g_piece, 4, j, true);
+    // }
+
+    // for (size_t j = 3; j < 50; j++) {
+    //     Piece_set(g_piece, 8, j, true);
+    // }
+
+
+
+
     // set all motor pins to output mode
     setpins();
 
@@ -74,9 +85,9 @@ void setup() {
 
     startFollowWalls();
     followRightWall();
-    // followRightWall();
-    // followRightWall();
-    // followRightWall();
+    followRightWall();
+    followRightWall();
+    followRightWall();
 
     // scan360(4);
 
@@ -232,8 +243,9 @@ void turn_right(float __degrees) {
 
     g_car_angle -= __degrees;
     // float speedScalar = 1.32;
-    float speedScalar = 1.12;
+    // float speedScalar = 1.12; // TOO MUCH ON A FULL CHARGE
     // float speedScalar = 1.22;
+    float speedScalar = 1.05; // full charge?
 
     // pour combien de temps?
     float turnTime = __degrees / angVelRight250; // give us the time it takes to rotate __degrees in seconds
@@ -410,6 +422,8 @@ void car_advance(int __ncases) {
     float speedScalar = 1.12;
     float surgeTime = 0.285 * (cmPerCase / carSpeedForward250);
     float waitTime = speedScalar * __ncases * (cmPerCase / carSpeedForward250);
+
+    Piece_set(g_piece, g_car_i, g_car_j, true);
 
     switch ( g_car_direction ) {
 
@@ -616,10 +630,12 @@ void followRightWall() {
         } else if ( distanceAdjacent > prevDistanceAdjacent ) { //la on s'éloigne du mur
 
             if ( distanceAdjacent > g_targetDistanceAdjacent + 15 ) {
-                turn_left(10);
+                turn_left(15);
             } else if ( distanceAdjacent > g_targetDistanceAdjacent + 10 ) { // si l'écart avec le mur est trop grand, corriger plus
-                turn_left(5);
+                turn_left(10);
             } else if ( distanceAdjacent > g_targetDistanceAdjacent + 5) {
+                turn_left(5);
+            } else if ( distanceAdjacent > g_targetDistanceAdjacent ) {
                 turn_left(2);
             } else {
                 // continue to approach the wall
@@ -627,7 +643,7 @@ void followRightWall() {
         }
 
         g_myservo.write(90); // look at the wall in front of us
-        delay(200);
+        delay(300);
 
         distanceFace = getDistance();
 
