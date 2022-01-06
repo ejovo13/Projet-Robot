@@ -19,3 +19,9 @@ Voici deux exemples des cartes qui sont produites par notre robot après avoir f
 
 ![3-walled room](./media/3_walls.jpg)
 (2) - excusez la photo d'écran...
+
+### serial_out.txt Exemple
+
+![serial_out.txt exemple](./media/sample_out.png)
+
+Cette photo montre comment une pièce peut être chargé en mémoire d'une manière ultra efficace en utilisant une matrice des `uint8_t`. Comme une `255` est représenté en binaire comme `11111111`, on utilise cette valeur pour stocker un segment horizantale d'un mur. En effet, on peut discretiser une pièce en 80 x 80 carrés en utilisant la moindre de mémoire possible - dans une matrice 80 x 10 des `uint8_t` - comme on économise chaque bit.
