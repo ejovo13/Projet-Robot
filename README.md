@@ -11,3 +11,11 @@
 - `serial_out.txt` est un exemple des données de sorties de notre robot cartographeur, pris du terminal serial de l'arduino. Pour visualiser l'exemple, appeler `./read < serial_out.txt`. Attention, l'exemple de `serial_out.txt` n'est pas une vraie donnée de sortie de notre robot, il a été créé pour tester la fonctionnement du binaire `read`.
 
 ## Pièces Cartographées
+
+Voici deux exemples des cartes qui sont produites par notre robot après avoir fait le tour d'une pièce rectangulaire (1) et d'une couloir (2). Les murs ne sont pas toujours connectés (voire présents) parce que il existe des incohérences dans la vrai vie au niveau de pouvoir dans la batterie, distance traversés, angle exacte entre le mur et robot (qui est présumé d'être parallèle), etc.
+
+![4-walled room](./media/4_walls.png)
+(1)
+
+![3-walled room](./media/3_walls.jpg)
+(2) - excusez la photo d'écran...
